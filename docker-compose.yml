@@ -1,0 +1,46 @@
+
+services:
+  app:
+    image: php:8.1-fpm
+    container_name: symfony_app
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8000:8000"
+    networks:
+      - symfony_net
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: "mysql://root:root@db:3306/mysymfonydb_db"
+      REDIS_URL: "redis://redis:6379"
+    working_dir: /var/www/html
+
+  db:
+    image: mysql:5.7
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root   # Ensure root password is set
+      MYSQL_DATABASE: symfonydb       # Database to be created on initialization
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - symfony_net
+    ports:
+      - "3307:3306"  # Change host port if needed (e.g., 3307)
+
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    networks:
+      - symfony_net
+    ports:
+      - "6379:6379"
+
+volumes:
+  db_data: {}
+
+networks:
+  symfony_net:
+    driver: bridge
